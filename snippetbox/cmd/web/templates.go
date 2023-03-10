@@ -1,0 +1,42 @@
+package main
+
+import (
+	"path/filepath"
+	"text/template"
+
+	"snippetbox.peyton.dog/snippetbox/internal/models"
+)
+
+func newTemplateCache() (map[string]*template.Template, error) {
+	cache := map[string]*template.Template{}
+
+	pages, err := filepath.Glob("./ui/html/pages*.tmpl")
+	if err != nil {
+		return nil, err
+	}
+
+	for _, page := range pages {
+		name := filepath.Base(page)
+
+		// need base and all partials for template
+		files := []string{
+			"./ui/html/base.tmpl",
+			"./ui/html/partials/nav.tmpl",
+			page,
+		}
+
+		ts, err := template.ParseFiles(files...)
+		if err != nil {
+			return nil, err
+		}
+
+		cache[name] = ts
+	}
+
+	return cache, nil
+}
+
+type templateData struct {
+	Snippet  *models.Snippet
+	Snippets []*models.Snippet
+}
